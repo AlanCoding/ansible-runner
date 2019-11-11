@@ -21,17 +21,27 @@ from __future__ import (absolute_import, division, print_function)
 import collections
 import contextlib
 import sys
+import os
+import importlib
 import uuid
 from copy import copy
 
 # Ansible
 from ansible import constants as C
 from ansible.plugins.callback import CallbackBase
-from ansible.plugins.callback.default import CallbackModule as DefaultCallbackModule
 
 # AWX Display Callback
 from .events import event_context
 from .minimal import CallbackModule as MinimalCallbackModule
+
+
+if 'RUNNER_STDOUT_CALLBACK_PROXY' in os.environ:
+    from ansible.plugins.loader import callback_loader
+    DefaultCallbackModule = callback_loader.get(os.environ['RUNNER_STDOUT_CALLBACK_PROXY']).__class__
+    DefaultCallbackModule.PROXY_DOCUMENTATION = importlib.import_module(DefaultCallbackModule.__module__).DOCUMENTATION
+else:
+    from ansible.plugins.callback.default import CallbackModule as DefaultCallbackModule
+
 
 CENSORED = "the output has been hidden due to the fact that 'no_log: true' was specified for this result"  # noqa
 
@@ -271,7 +281,7 @@ class BaseCallbackModule(CallbackBase):
             uuid=task_uuid,
         )
         with self.capture_event_data('playbook_on_task_start', **event_data):
-            super(BaseCallbackModule, self).v2_playbook_on_task_start(task, is_conditional)
+            super(BaseCallbackModule, self).v2_playbook_on_task_start(task, is_conditional=is_conditional)
 
     def v2_playbook_on_cleanup_task_start(self, task):
         # NOTE: Not used by Ansible 2.x.

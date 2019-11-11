@@ -48,3 +48,7 @@ from display_callback import AWXDefaultCallbackModule  # noqa
 # match "CallbackModule"
 class CallbackModule(AWXDefaultCallbackModule):
     pass
+
+
+if hasattr(CallbackModule, 'PROXY_DOCUMENTATION'):
+    DOCUMENTATION = CallbackModule.PROXY_DOCUMENTATION
