@@ -191,10 +191,14 @@ class RunnerConfig(object):
         if callback_dir is None:
             callback_dir = os.path.join(os.path.split(os.path.abspath(__file__))[0],
                                         "callbacks")
+        module_utils_dir = os.path.join(
+            os.path.split(callback_dir)[0], 'display_callback'
+        )
         python_path = self.env.get('PYTHONPATH', os.getenv('PYTHONPATH', ''))
         if python_path and not python_path.endswith(':'):
             python_path += ':'
         self.env['ANSIBLE_CALLBACK_PLUGINS'] = ':'.join(filter(None,(self.env.get('ANSIBLE_CALLBACK_PLUGINS'), callback_dir)))
+        self.env['ANSIBLE_MODULE_UTILS'] = ':'.join(filter(None,(self.env.get('ANSIBLE_MODULE_UTILS'), module_utils_dir)))
         if 'AD_HOC_COMMAND_ID' in self.env:
             self.env['ANSIBLE_STDOUT_CALLBACK'] = 'minimal'
         else:
