@@ -21,3 +21,4 @@
 *,cover
 .venv
 .env
+/test/integration/artifacts/
