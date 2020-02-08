@@ -102,10 +102,11 @@ def test_playbook_on_stats_summary_fields(rc):
     assert set(fields) >= set(EXPECTED_SUMMARY_FIELDS)
 
 
-def test_include_role_events():
+def test_include_role_events(data_directory):
+    data_dir = os.path.join(data_directory, 'misc')
     try:
         r = run(
-            private_data_dir=os.path.abspath('test/integration'),
+            private_data_dir=data_dir,
             playbook='use_role.yml'
         )
         role_events = [event for event in r.events if event.get('event_data', {}).get('role', '') == "benthomasson.hello_role"]
@@ -116,7 +117,7 @@ def test_include_role_events():
             if event['event'] == 'runner_on_ok':
                 assert event_data['res']['msg'] == 'Hello world!'
     finally:
-        shutil.rmtree('test/integration/artifacts')
+        shutil.rmtree(os.path.join(data_dir, 'artifacts'))
 
 @pytest.mark.skipif(find_executable('cgexec') is None,
                     reason="cgexec not available")
