@@ -1,2 +1,0 @@
----
-ANSIBLE_CALLBACK_WHITELIST': other_callback
