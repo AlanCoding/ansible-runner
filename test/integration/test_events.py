@@ -119,6 +119,21 @@ def test_include_role_events(data_directory):
     finally:
         shutil.rmtree(os.path.join(data_dir, 'artifacts'))
 
+
+def test_use_aggregate_callback(data_directory):
+    data_dir = os.path.join(data_directory, 'aggregate_callback')
+    try:
+        r = run(
+            private_data_dir=data_dir,
+            playbook='debug.yml'
+        )
+        stdout = '\n'.join([event['stdout'] for event in r.events])
+        assert 'ready_set_play_start' in stdout
+        assert 'ready_set_on_ok' in stdout
+    finally:
+        shutil.rmtree(os.path.join(data_dir, 'artifacts'))
+
+
 @pytest.mark.skipif(find_executable('cgexec') is None,
                     reason="cgexec not available")
 @pytest.mark.skipif(LooseVersion(pkg_resources.get_distribution('ansible').version) < LooseVersion('2.8'),
