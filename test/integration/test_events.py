@@ -153,7 +153,7 @@ def test_use_display_callback(data_directory):
         # the task names should not be displayed in output (due to use of "selective" callback)
         assert 'Use debug task to produce different status for several hosts' not in stdout
         # callback should print stuff in blue color too
-        assert '\u001b' in stdout
+        assert '\u001b' in stdout or '\x1b' in stdout
     finally:
         shutil.rmtree(os.path.join(data_dir, 'artifacts'))
 
@@ -165,7 +165,7 @@ def test_use_display_callback_with_option(data_directory):
         # with this option set, callback should not print anything in blue color
         stdout = '\n'.join([event['stdout'] for event in r.events])
         assert 'Use debug task to produce different status for several hosts' not in stdout
-        assert '\u001b' not in stdout
+        assert '\u001b' not in stdout and '\x1b' not in stdout
     finally:
         shutil.rmtree(os.path.join(data_dir, 'artifacts'))
 
