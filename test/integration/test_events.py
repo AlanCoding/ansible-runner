@@ -134,6 +134,17 @@ def test_use_aggregate_callback(data_directory):
         shutil.rmtree(os.path.join(data_dir, 'artifacts'))
 
 
+def test_hide_skipped_tasks(data_directory):
+    data_dir = os.path.join(data_directory, 'callback_options')
+    try:
+        r = run(private_data_dir=data_dir, playbook='task_status.yml')
+        stdout = '\n'.join([event['stdout'] for event in r.events])
+        # skipped tasks should not be shown
+        assert 'skipping:' not in stdout
+    finally:
+        shutil.rmtree(os.path.join(data_dir, 'artifacts'))
+
+
 def test_use_display_callback(data_directory):
     data_dir = os.path.join(data_directory, 'display_callback')
     try:

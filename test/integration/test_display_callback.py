@@ -66,13 +66,6 @@ def executor(tmpdir, request):
         var: results
 '''},  # noqa
 ])
-@pytest.mark.parametrize('envvars', [
-    {
-        'ANSIBLE_CALLBACK_PLUGINS': '/Users/alancoding/Documents/repos/ansible-runner/test/data/aggregate_callback',
-        'ANSIBLE_CALLBACK_WHITELIST': 'other_callback'
-    },
-    {'ANSIBLE_CALLBACK_PLUGINS': ''}
-])
 def test_callback_plugin_receives_events(executor, event, playbook, envvars):
     executor.run()
     assert len(list(executor.events))

@@ -17,20 +17,6 @@
 
 from __future__ import (absolute_import, division, print_function)
 
-
-DOCUMENTATION = '''
-    callback: awx_display
-    short_description: Playbook event dispatcher for ansible-runner
-    version_added: "2.0"
-    description:
-        - This callback is necessary for ansible-runner to work
-    type: stdout
-    extends_documentation_fragment:
-      - default_callback
-    requirements:
-      - Set as stdout in config
-'''
-
 # Python
 import os  # noqa
 import sys  # noqa
@@ -50,5 +36,4 @@ class CallbackModule(AWXDefaultCallbackModule):
     pass
 
 
-if hasattr(CallbackModule, 'PROXY_DOCUMENTATION'):
-    DOCUMENTATION = CallbackModule.PROXY_DOCUMENTATION
+DOCUMENTATION = CallbackModule.get_documentation()

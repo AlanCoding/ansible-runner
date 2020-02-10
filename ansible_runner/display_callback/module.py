@@ -35,6 +35,20 @@ from .events import event_context
 from .minimal import CallbackModule as MinimalCallbackModule
 
 
+BASE_DOCUMENTATION = '''
+    callback: %s
+    short_description: Playbook event dispatcher for ansible-runner
+    version_added: "2.0"
+    description:
+        - This callback is necessary for ansible-runner to work
+    type: stdout
+    extends_documentation_fragment:
+      - default_callback
+    requirements:
+      - Set as stdout in config
+'''
+
+
 if 'RUNNER_STDOUT_CALLBACK_PROXY' in os.environ:
     from ansible.plugins.loader import callback_loader
     DefaultCallbackModule = callback_loader.get(os.environ['RUNNER_STDOUT_CALLBACK_PROXY']).__class__
@@ -69,6 +83,12 @@ class BaseCallbackModule(CallbackBase):
         'playbook_on_no_hosts_matched',
         'playbook_on_no_hosts_remaining',
     ]
+
+    @classmethod
+    def get_documentation(cls):
+        if hasattr(cls, 'PROXY_DOCUMENTATION'):
+            return cls.PROXY_DOCUMENTATION
+        return BASE_DOCUMENTATION % cls.CALLBACK_NAME
 
     def __init__(self):
         super(BaseCallbackModule, self).__init__()
