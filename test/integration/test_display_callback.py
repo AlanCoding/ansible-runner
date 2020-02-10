@@ -66,7 +66,7 @@ def executor(tmpdir, request):
         var: results
 '''},  # noqa
 ])
-def test_callback_plugin_receives_events(executor, event, playbook, envvars):
+def test_callback_plugin_receives_events(executor, event, playbook):
     executor.run()
     assert len(list(executor.events))
     assert event in [task['event'] for task in executor.events]
