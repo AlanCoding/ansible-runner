@@ -384,7 +384,7 @@ class BaseCallbackModule(CallbackBase):
             event_loop=self._get_event_loop(result._task),
         )
         with self.capture_event_data('runner_on_failed', **event_data):
-            super(BaseCallbackModule, self).v2_runner_on_failed(result, ignore_errors)
+            super(BaseCallbackModule, self).v2_runner_on_failed(result, ignore_errors=ignore_errors)
 
     def v2_runner_on_skipped(self, result):
         event_data = dict(
