@@ -134,6 +134,31 @@ def test_use_aggregate_callback(data_directory):
         shutil.rmtree(os.path.join(data_dir, 'artifacts'))
 
 
+def test_use_display_callback(data_directory):
+    data_dir = os.path.join(data_directory, 'display_callback')
+    try:
+        r = run(private_data_dir=data_dir, playbook='task_status.yml')
+        stdout = '\n'.join([event['stdout'] for event in r.events])
+        # the task names should not be displayed in output (due to use of "selective" callback)
+        assert 'Use debug task to produce different status for several hosts' not in stdout
+        # callback should print stuff in blue color too
+        assert '\u001b' in stdout
+    finally:
+        shutil.rmtree(os.path.join(data_dir, 'artifacts'))
+
+
+def test_use_display_callback_with_option(data_directory):
+    data_dir = os.path.join(data_directory, 'display_callback_options')
+    try:
+        r = run(private_data_dir=data_dir, playbook='task_status.yml')
+        # with this option set, callback should not print anything in blue color
+        stdout = '\n'.join([event['stdout'] for event in r.events])
+        assert 'Use debug task to produce different status for several hosts' not in stdout
+        assert '\u001b' not in stdout
+    finally:
+        shutil.rmtree(os.path.join(data_dir, 'artifacts'))
+
+
 @pytest.mark.skipif(find_executable('cgexec') is None,
                     reason="cgexec not available")
 @pytest.mark.skipif(LooseVersion(pkg_resources.get_distribution('ansible').version) < LooseVersion('2.8'),

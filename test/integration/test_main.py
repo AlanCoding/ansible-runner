@@ -122,7 +122,7 @@ def test_role_run(data_directory):
 
 
 def test_role_run_abs(data_directory):
-    with temp_directory() as temp_dir:
+    with temp_directory():
         rc = main(['-r', 'benthomasson.hello_role',
                    '--hosts', 'localhost',
                    '--roles-path', os.path.join(data_directory, 'misc', 'project/roles'),
