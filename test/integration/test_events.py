@@ -10,6 +10,7 @@ import shutil
 from ansible_runner import run, run_async
 
 
+@pytest.mark.serial
 def test_basic_events(is_run_async=False,g_facts=False):
     tdir = tempfile.mkdtemp()
     inventory = "localhost ansible_connection=local"
