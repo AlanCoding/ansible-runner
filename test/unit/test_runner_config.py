@@ -570,3 +570,20 @@ def test_profiling_plugin_settings_with_custom_intervals(mock_mkdir):
     assert rc.env['CGROUP_CPU_POLL_INTERVAL'] == '.5'
     assert rc.env['CGROUP_MEMORY_POLL_INTERVAL'] == '.75'
     assert rc.env['CGROUP_PID_POLL_INTERVAL'] == '1.5'
+
+
+@patch('os.mkdir', return_value=True)
+def test_containerization_settings(mock_mkdir):
+    rc = RunnerConfig('/')
+    rc.playbook = 'main.yaml'
+    rc.command = 'ansible-playbook'
+    rc.containerized = True
+    rc.container_runtime='docker'
+    rc.prepare()
+
+    expected_command_start = ['docker', 'run', '--rm', '--tty', '--interactive', '--workdir', '/runner/project'] + \
+        ['-v', '{}:/runner:Z'.format(rc.private_data_dir)] + \
+        ['-e', 'AWX_ISOLATED_DATA_DIR=/runner/artifacts/{}'.format(rc.ident)] + \
+        ['shanemcd/ansible-runner', 'ansible-playbook', '-i', '/runner/inventory/hosts', 'main.yaml']
+    for index, element in enumerate(expected_command_start):
+        assert rc.command[index] == element
