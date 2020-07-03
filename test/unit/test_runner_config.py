@@ -573,16 +573,22 @@ def test_profiling_plugin_settings_with_custom_intervals(mock_mkdir):
 
 
 @patch('os.mkdir', return_value=True)
-def test_containerization_settings(mock_mkdir):
+@pytest.mark.parametrize('container_runtime', ['docker', 'podman'])
+def test_containerization_settings(mock_mkdir, container_runtime):
     rc = RunnerConfig('/')
     rc.playbook = 'main.yaml'
     rc.command = 'ansible-playbook'
     rc.containerized = True
-    rc.container_runtime='docker'
+    rc.container_runtime=container_runtime
     rc.prepare()
 
-    expected_command_start = ['docker', 'run', '--rm', '--tty', '--interactive', '--workdir', '/runner/project'] + \
+    extra_container_args = []
+    if container_runtime == 'podman':
+        extra_container_args = ['--quiet']
+
+    expected_command_start = [container_runtime, 'run', '--rm', '--tty', '--interactive', '--workdir', '/runner/project'] + \
         ['-v', '{}:/runner:Z'.format(rc.private_data_dir)] + \
+        extra_container_args + \
         ['-e', 'AWX_ISOLATED_DATA_DIR=/runner/artifacts/{}'.format(rc.ident)] + \
         ['shanemcd/ansible-runner', 'ansible-playbook', '-i', '/runner/inventory/hosts', 'main.yaml']
     for index, element in enumerate(expected_command_start):
