@@ -154,9 +154,6 @@ class RunnerConfig(object):
         It's also responsible for wrapping the command with the proper ssh agent invocation
         and setting early ANSIBLE_ environment variables.
         """
-        # ansible_path = find_executable('ansible')
-        # if ansible_path is None or not os.access(ansible_path, os.X_OK):
-        #     raise ConfigurationError("Ansible not found. Make sure that it is installed.")
         if self.private_data_dir is None:
             raise ConfigurationError("Runner Base Directory is not defined")
         if self.module and self.playbook:
@@ -189,21 +186,10 @@ class RunnerConfig(object):
 
         # Use local callback directory
         runner_root = os.path.split(os.path.abspath(__file__))[0]
-        callback_dir = self.env.get('AWX_LIB_DIRECTORY', os.getenv('AWX_LIB_DIRECTORY'))
-        if callback_dir is None:
-            callback_dir = os.path.join(runner_root, "callbacks")
-
         collection_dir = os.path.join(runner_root, 'lib')
-        # collection_dir = self.env.get('AWX_LIB_DIRECTORY', os.getenv('AWX_LIB_DIRECTORY', collection_dir))
-
-        # # for compatibility with old versions
-        # callback_dir = os.path.join(
-        #     collection_dir, 'ansible_collections', 'runner', 'wrapper',
-        #     'plugins', 'callback')
-        # self.env['ANSIBLE_CALLBACK_PLUGINS'] = ':'.join(filter(None,(self.env.get('ANSIBLE_CALLBACK_PLUGINS'), callback_dir)))
 
         # The new method with collection
-        self.env['ANSIBLE_COLLECTIONS_PATHS'] = ':'.join(filter(None,(self.env.get('ANSIBLE_COLLECTIONS_PATHS'), collection_dir)))
+        self.env['ANSIBLE_COLLECTIONS_PATH'] = ':'.join(filter(None,(self.env.get('ANSIBLE_COLLECTIONS_PATHS'), collection_dir)))
 
         if 'AD_HOC_COMMAND_ID' in self.env:
             self.env['ANSIBLE_STDOUT_CALLBACK'] = 'runner.wrapper.minimal'

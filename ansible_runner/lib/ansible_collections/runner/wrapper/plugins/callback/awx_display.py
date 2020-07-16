@@ -31,8 +31,10 @@ DOCUMENTATION = '''
       - Set as stdout in config
 '''
 
-# Tower Display Callback
-from ansible_collections.runner.wrapper.plugins.module_utils.patched import AWXDefaultCallbackModule  # noqa
+# AWX Display Callback
+from ..module_utils import cleanup  # noqa (registers control persistent cleanup)
+from ..module_utils import display  # noqa (wraps ansible.display.Display methods)
+from ..module_utils.module import AWXDefaultCallbackModule
 
 
 # In order to be recognized correctly, self.__class__.__name__ needs to
