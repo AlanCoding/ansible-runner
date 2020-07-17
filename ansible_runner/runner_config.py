@@ -184,11 +184,12 @@ class RunnerConfig(object):
             open_fifo_write(self.ssh_key_path, self.ssh_key_data)
             self.command = self.wrap_args_with_ssh_agent(self.command, self.ssh_key_path)
 
-        # Use local callback directory
+        # Use local collection directory
         runner_root = os.path.split(os.path.abspath(__file__))[0]
         collection_dir = os.path.join(runner_root, 'lib')
-
-        # The new method with collection
+        python_path = self.env.get('PYTHONPATH', os.getenv('PYTHONPATH', ''))
+        if python_path and not python_path.endswith(':'):
+            python_path += ':'
         self.env['ANSIBLE_COLLECTIONS_PATH'] = ':'.join(filter(None,(self.env.get('ANSIBLE_COLLECTIONS_PATHS'), collection_dir)))
 
         if 'AD_HOC_COMMAND_ID' in self.env:
@@ -222,6 +223,7 @@ class RunnerConfig(object):
             self.env['CGROUP_WRITE_FILES'] = 'True'
             self.env['CGROUP_DISPLAY_RECAP'] = 'False'
 
+        self.env['PYTHONPATH'] = python_path + collection_dir
         if self.roles_path:
             self.env['ANSIBLE_ROLES_PATH'] = ':'.join(self.roles_path)
 
