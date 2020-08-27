@@ -41,7 +41,7 @@ class CompletedProcessProxy(object):
         return yaml.safe_load(self.stdout)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def cli(request):
     def run(args, *a, **kw):
         args = ['ansible-runner',] + args
@@ -60,7 +60,7 @@ def cli(request):
         })
 
         try:
-            ret = CompletedProcessProxy(subprocess.run(args, shell=True, *a, **kw))
+            ret = CompletedProcessProxy(subprocess.run(args, *a, **kw))
         except subprocess.CalledProcessError as err:
             pytest.fail(
                 f"Running {err.cmd} resulted in a non-zero return code: {err.returncode} - stdout: {err.stdout}, stderr: {err.stderr}"

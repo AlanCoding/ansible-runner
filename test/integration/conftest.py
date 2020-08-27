@@ -1,5 +1,6 @@
 import pytest
 import pexpect
+import subprocess
 from ansible_runner.runner_config import RunnerConfig
 
 
@@ -22,19 +23,13 @@ def rc(request, tmpdir):
 
 # TODO: determine if we want to add docker / podman
 # to zuul instances in order to run these tests
-@pytest.fixture(scope="session", autouse=True)
-def container_runtime_available():
-    import subprocess
-    import warnings
-
-    runtimes_available = True
-    for runtime in ('docker', 'podman'):
-        try:
-            subprocess.run([runtime, '-v'])
-        except FileNotFoundError:
-            warnings.warn(UserWarning(f"{runtime} not available"))
-            runtimes_available = False
-    return runtimes_available
+@pytest.fixture(params=['docker', 'podman'], ids=['docker', 'podman'], scope='session')
+def container_runtime_available(request, cli):
+    try:
+        subprocess.run([request.param, '-v'])
+        return request.param
+    except FileNotFoundError:
+        pytest.skip(f'{request.param} runtime not available')
 
 
 # TODO: determine if we want to add docker / podman
