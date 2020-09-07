@@ -81,7 +81,8 @@ class RunnerConfig(object):
                  rotate_artifacts=0, host_pattern=None, binary=None, extravars=None, suppress_ansible_output=False,
                  process_isolation=False, process_isolation_executable='podman', process_isolation_path=None,
                  process_isolation_hide_paths=None, process_isolation_show_paths=None, process_isolation_ro_paths=None,
-                 container_image='ansible/ansible-runner', container_volume_mounts=None, container_options=None,
+                 container_image='quay.io/ansible/ansible-runner:devel',
+                 container_volume_mounts=None, container_options=None,
                  resource_profiling=False, resource_profiling_base_cgroup='ansible-runner', resource_profiling_cpu_poll_interval=0.25,
                  resource_profiling_memory_poll_interval=0.25, resource_profiling_pid_poll_interval=0.25,
                  resource_profiling_results_dir=None,
@@ -211,15 +212,10 @@ class RunnerConfig(object):
             self.command = self.wrap_args_with_ssh_agent(self.command, self.ssh_key_path)
 
         # Use local callback directory
-        callback_dir = self.env.get('AWX_LIB_DIRECTORY', os.getenv('AWX_LIB_DIRECTORY'))
-        if self.containerized:
-            callback_dir = '/usr/lib/python3.6/site-packages/ansible_runner/callbacks'
-        elif callback_dir is None:
-            callback_dir = os.path.join(os.path.split(os.path.abspath(__file__))[0],
-                                        "callbacks")
-        if self.containerized:
-            self.env['ANSIBLE_CALLBACK_PLUGINS'] = callback_dir
-        else:
+        if not self.containerized:
+            callback_dir = self.env.get('AWX_LIB_DIRECTORY', os.getenv('AWX_LIB_DIRECTORY'))
+            if callback_dir is None:
+                callback_dir = os.path.join(os.path.split(os.path.abspath(__file__))[0], "callbacks")
             python_path = self.env.get('PYTHONPATH', os.getenv('PYTHONPATH', ''))
             self.env['PYTHONPATH'] = ':'.join([python_path, callback_dir])
             if python_path and not python_path.endswith(':'):
@@ -732,18 +728,8 @@ class RunnerConfig(object):
                 new_args.extend(["--ipc=host"])
 
 
-        # These directories need to exist before they are mounted in the container,
-        # or they will be owned by root.
-        if not self.cli_execenv_cmd:
-            dirs_to_create = ['project', 'artifacts', 'inventory', 'env']
-        else:
-            dirs_to_create = ['artifacts']
-
-        for d in dirs_to_create:
-            if not os.path.exists(os.path.join(self.private_data_dir, d)):
-                os.mkdir(os.path.join(self.private_data_dir, d), 0o700)
-
-            new_args.extend(["-v", "{}:/runner/{}:Z".format(os.path.join(self.private_data_dir, d), d)])
+        # Mount the private_data_dir
+        new_args.extend(["-v", "{}:/runner:Z".format(self.private_data_dir)])
 
         container_volume_mounts = self.container_volume_mounts
         if container_volume_mounts:
