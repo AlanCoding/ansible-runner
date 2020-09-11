@@ -100,3 +100,32 @@ def test_env_accuracy_inside_container(request, printenv_example, container_runt
         assert actual_env[key] == value, 'Reported value wrong for {0} env var'.format(key)
 
     assert '/tmp' == res.config.cwd
+
+
+@pytest.mark.serial
+def test_profiling_inside_container(request, test_data_dir, container_runtime_installed):
+    private_data_dir = os.path.join(test_data_dir, 'debug')
+
+    def remove_env_dir():
+        env_dir = os.path.join(private_data_dir, 'env')
+        if os.path.exists(env_dir):
+            shutil.rmtree(env_dir)
+
+    remove_env_dir()
+    request.addfinalizer(remove_env_dir)
+
+    res = run(
+        private_data_dir=private_data_dir,
+        # project_dir='/tmp',
+        playbook='debug.yml',
+        inventory=None,
+        settings={
+            'process_isolation_executable': container_runtime_installed,
+            'process_isolation': True,
+            'resource_profiling': True,
+            # 'resource_profiling_base_cgroup': 'ansible-runner',
+        }
+    )
+    assert res.rc == 0, res.stdout.read()
+
+    assert os.path.exists(os.path.join(private_data_dir, 'profiling_data'))

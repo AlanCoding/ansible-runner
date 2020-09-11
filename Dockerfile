@@ -11,6 +11,8 @@ ADD demo/inventory /runner/inventory
 #ADD https://releases.ansible.com/ansible-runner/ansible-runner.el8.repo /etc/yum.repos.d/ansible-runner.repo
 #RUN dnf install -y ansible-runner
 RUN dnf install -y python3-pip rsync openssh-clients sshpass glibc-langpack-en git \
+# libcgroup is for resource profiling
+    libcgroup-tools \
     https://github.com/krallin/tini/releases/download/v0.19.0/tini_0.19.0-amd64.rpm && \
     rm -rf /var/cache/dnf
 
