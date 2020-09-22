@@ -11,16 +11,12 @@ if [[ (`id -u` -ge 500 || -z "${CURRENT_UID}") ]]; then
     # If we are running in rootless podman, this file cannot be overwritten
     ROOTLESS_MODE=$(cat /proc/self/uid_map | head -n1 | awk '{ print $2; }')
     if [[ "$ROOTLESS_MODE" -eq "0" ]]; then
-cat << EOF > /etc/passwd
-root:x:0:0:root:/root:/bin/bash
-runner:x:`id -u`:`id -g`:,,,:/home/runner:/bin/bash
-EOF
+        echo 'root:x:0:0:root:/root:/bin/bash' >> /etc/passwd
+        echo 'runner:x:`id -u`:`id -g`:,,,:/home/runner:/bin/bash' >> /etc/passwd
     fi
 
-cat <<EOF > /etc/group
-root:x:0:runner
-runner:x:`id -g`:
-EOF
+    echo 'root:x:0:runner' >> /etc/passwd
+    echo 'runner:x:`id -g`:' >> /etc/passwd
 
 fi
 

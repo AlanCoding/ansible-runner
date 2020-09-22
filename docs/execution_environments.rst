@@ -3,7 +3,7 @@
 Using Runner with Execution Environmnets
 ========================================
 
-**Execution Environments** are meant to be a consistent, reproducable, portable,
+**Execution Environments** are meant to be a consistent, reproducible, portable,
 and sharable method to run Ansible Automation jobs in the exact same way on
 your laptop as they are executed in `Ansible AWX <https://github.com/ansible/awx/`_. 
 This aids in the development of automation jobs and Ansible Content that is
@@ -26,7 +26,7 @@ aids in the creation of these images.
 
 All aspects of running **Ansible Runner** in standalone mode (see: :ref:`standalone`)
 are true here with the exception that the process isolation is inherently a
-container runtime (`podman <https://podman.io/>`_ by default).
+container runtime (`podman <https://podman.io/>`_).
 
 Emulating the Ansible CLI
 -------------------------
@@ -95,3 +95,22 @@ Here is an example of a ssh config file that is a symlink:
         $ ansible-runner playbook \
             --container-volume-mount /home/myuser/dotfiles/:/home/myuser/dotfiles/ \
             my_playbook.yml -i my_inventory.ini
+
+Use with Private Data Directory
+-------------------------------
+
+For projects already structured in the recommended Runner Input Directory
+(see :ref:`intro`), settings sufficient to run inside of a container
+are ``process_isolation`` (set to True) and ``process_isolation_executable``
+(may be "podman" or "docker").
+These settings can be provided inside of ``env/settings``.
+
+If using the playbook or adhoc commands, you may still provide a private data dir.
+However, paths for those commands are expected to be relative to the directory
+on the host machine from where the command is called, or absolute on the host machine.
+The main role of the private data dir for these commands is that the artifacts
+directory will be placed there, so that output can be inspected.
+
+Technically, commands like ``ansible-runner run`` will mount the private data directory,
+whereas commands like ``ansible-runner playbook`` will individually mount directories
+to map playbook/inventory/etc. locations, plus the artifacts directory.
