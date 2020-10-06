@@ -49,7 +49,7 @@ class Transmitter(object):
         self._output.flush()
 
         private_data_dir = self.kwargs.get('private_data_dir')
-        self._output.write(utils.stream_dir(private_data_dir))
+        utils.stream_dir(private_data_dir, self._output)
         self._output.write(json.dumps({'eof': True}).encode('utf-8'))
         self._output.write(b'\n')
         self._output.flush()
@@ -85,9 +85,7 @@ class Worker(object):
             if 'kwargs' in data:
                 self.job_kwargs = data['kwargs']
             elif 'zipfile' in data:
-                zip_data = self._input.read(data['zipfile'])
-                buf = io.BytesIO(zip_data)
-                with zipfile.ZipFile(buf, 'r') as archive:
+                with zipfile.ZipFile(self._input, 'r') as archive:
                     archive.extractall(path=self.private_data_dir)
             elif 'eof' in data:
                 break
@@ -98,7 +96,6 @@ class Worker(object):
         self.kwargs['private_data_dir'] = self.private_data_dir
         self.kwargs['status_handler'] = self.status_handler
         self.kwargs['event_handler'] = self.event_handler
-        self.kwargs['artifacts_handler'] = self.artifacts_handler
         self.kwargs['finished_callback'] = self.finished_callback
 
         r = ansible_runner.interface.run(**self.kwargs)
@@ -119,10 +116,6 @@ class Worker(object):
         self._output.write(b'\n')
         self._output.flush()
 
-    def artifacts_handler(self, artifact_dir):
-        self._output.write(utils.stream_dir(artifact_dir))
-        self._output.flush()
-
     def finished_callback(self, runner_obj):
         self._output.write(json.dumps({'eof': True}).encode('utf-8'))
         self._output.write(b'\n')
@@ -131,7 +124,7 @@ class Worker(object):
 
 class Processor(object):
     def __init__(self, _input=None, status_handler=None, event_handler=None,
-                 artifacts_handler=None, cancel_callback=None, finished_callback=None, **kwargs):
+                 cancel_callback=None, finished_callback=None, **kwargs):
         if _input is None:
             _input = sys.stdin.buffer
         self._input = _input
@@ -158,7 +151,6 @@ class Processor(object):
 
         self.status_handler = status_handler
         self.event_handler = event_handler
-        self.artifacts_handler = artifacts_handler
 
         self.cancel_callback = cancel_callback  # FIXME: unused
         self.finished_callback = finished_callback
@@ -197,14 +189,6 @@ class Processor(object):
                 os.chmod(full_filename, stat.S_IRUSR | stat.S_IWUSR)
                 json.dump(event_data, write_file)
 
-    def artifacts_callback(self, artifacts_data):
-        buf = io.BytesIO(artifacts_data)
-        with zipfile.ZipFile(buf, 'r') as archive:
-            archive.extractall(path=self.config.artifact_dir)
-
-        if self.artifacts_handler is not None:
-            self.artifacts_handler(self.config.artifact_dir)
-
     def run(self):
         job_events_path = os.path.join(self.artifact_dir, 'job_events')
         if not os.path.exists(job_events_path):
@@ -217,7 +201,8 @@ class Processor(object):
             if 'status' in data:
                 self.status_callback(data)
             elif 'zipfile' in data:
-                self.artifacts_callback(self._input.read(data['zipfile']))
+                with zipfile.ZipFile(self._input, 'r') as archive:
+                    archive.extractall(path=self.config.artifact_dir)
             elif 'eof' in data:
                 break
             else:
