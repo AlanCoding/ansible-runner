@@ -85,8 +85,10 @@ class Worker(object):
             if 'kwargs' in data:
                 self.job_kwargs = data['kwargs']
             elif 'zipfile' in data:
-                with zipfile.ZipFile(self._input, 'r') as archive:
-                    archive.extractall(path=self.private_data_dir)
+                for i in range(5):
+                    with zipfile.ZipFile(self._input, 'r') as archive:
+                        archive.extractall(path=self.private_data_dir)
+                    archive.close()
             elif 'eof' in data:
                 break
 

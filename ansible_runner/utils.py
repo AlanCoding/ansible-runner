@@ -94,6 +94,7 @@ def stream_dir(directory, buf):
                     relpath = ""
                 for fname in files:
                     archive.write(os.path.join(dirpath, fname), arcname=os.path.join(relpath, fname))
+        archive.close()
     buf.write(b'\n')
 
 
