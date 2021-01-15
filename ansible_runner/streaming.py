@@ -34,7 +34,7 @@ class Transmitter(object):
         if _output is None:
             _output = sys.stdout.buffer
         self._output = _output
-        self.private_data_dir = os.path.abspath(kwargs.pop('private_data_dir'))
+        self.private_data_dir = os.path.abspath(kwargs.get('private_data_dir'))
         self.kwargs = kwargs
 
         self.status = "unstarted"
@@ -67,10 +67,9 @@ class Worker(object):
         self.kwargs = kwargs
         self.job_kwargs = None
 
-        private_data_dir = kwargs.get('private_data_dir')
-        if private_data_dir is None:
-            private_data_dir = tempfile.TemporaryDirectory().name
-        self.private_data_dir = private_data_dir
+        self.private_data_dir = None
+        if kwargs.get('private_data_dir'):
+            self.private_data_dir = kwargs.get('private_data_dir')
 
         self.status = "unstarted"
         self.rc = None
@@ -91,6 +90,11 @@ class Worker(object):
             data = json.loads(line)
 
             if 'kwargs' in data:
+                if data['kwargs'].get('private_data_dir') and not self.private_data_dir:
+                    self.private_data_dir = data['kwargs'].get('private_data_dir')
+                else:
+                    self.private_data_dir = tempfile.TemporaryDirectory().name
+
                 self.job_kwargs = self.update_paths(data['kwargs'])
             elif 'zipfile' in data:
                 zip_data = self._input.read(data['zipfile'])
