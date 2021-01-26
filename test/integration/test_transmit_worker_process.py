@@ -132,6 +132,10 @@ class TestStreamingUsage:
                     break
                 time.sleep(0.05)  # additionally, AWX calls cancel_callback()
 
+            # since transmission is finished, it is time to close those sockets
+            for s in (transmit_socket_write, transmit_socket_read):
+                s.close()
+
             res = transmit_future.result()
             assert res.rc in (None, 0)
             assert res.status == 'unstarted'
@@ -143,7 +147,7 @@ class TestStreamingUsage:
                     break
                 time.sleep(0.05)  # additionally, AWX calls cancel_callback()
 
-        for s in (transmit_socket_write, transmit_socket_read, results_socket_write, results_socket_read):
+        for s in (results_socket_write, results_socket_read):
             s.close()
 
         assert self.status_data is not None
